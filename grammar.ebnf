@@ -1,21 +1,36 @@
 (* untyped lambda calculus grammar *)
 
-expression          = identifier | function | application
+program             = { statement }
                     ;
 
-abstraction         = lambda, identifier, dot, expression
+statement           = preprocess | expression
+                    ;
+
+preprocess          = pound, include
+                    ;
+
+include             = 'include', '"', { character - greek_letter }, '"'
+                    ;
+
+expression          = ["("], (variable | application | abstraction), [")"]
                     ;
 
 application         = expression, expression
                     ;
 
-identifier          = { character - (lambda | dot) }
+abstraction         = lambda, variable, dot, expression
                     ;
 
-lambda              = "Λ" | "λ"
+variable            = { character - (lambda | dot | pound) }
+                    ;
+
+lambda              = "Λ" | "λ" | 'lambda' | "@" | "\"
                     ;
 
 dot                 = "."
+                    ;
+
+pound               = "#"
                     ;
 
 character           = letter | greek_letter | digit | symbol

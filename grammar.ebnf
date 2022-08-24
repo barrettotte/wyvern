@@ -3,13 +3,13 @@
 program             = { statement }
                     ;
 
-statement           = preprocess | expression
+statement           = (comment | definition | expression), "\n"
                     ;
 
-preprocess          = pound, include
+comment             = "#", { character }
                     ;
 
-include             = 'include', '"', { character - greek_letter }, '"'
+definition          = variable, ":=", expression
                     ;
 
 expression          = ["("], (variable | application | abstraction), [")"]
@@ -18,33 +18,16 @@ expression          = ["("], (variable | application | abstraction), [")"]
 application         = expression, expression
                     ;
 
-abstraction         = lambda, variable, dot, expression
+abstraction         = "λ", variable, ".", expression
                     ;
 
-variable            = { character - (lambda | dot | pound) }
+variable            = { character }
                     ;
 
-lambda              = "Λ" | "λ" | 'lambda' | "@" | "\"
-                    ;
-
-dot                 = "."
-                    ;
-
-pound               = "#"
-                    ;
-
-character           = letter | greek_letter | digit | symbol
+character           = letter | digit | "_"
                     ;
 
 letter              = uppercase | lowercase 
-                    ;
-
-greek_letter        = greek_upper | greek_lower
-                    ;
-
-symbol              = "!" | "@" | "#" | "$" | "%" | "^" | "&" | "*" | "_" | "-"
-                    | "+" | "=" | ";" | ":" | "." | "," | "<" | ">" | "/" | "?" 
-                    | "|" | "~" | "`"
                     ;
 
 uppercase           = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J"
@@ -57,12 +40,5 @@ lowercase           = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j"
                     | "u" | "v" | "w" | "x" | "y" | "z" 
                     ;
 
-greek_upper         = "Α" | "Β" | "Γ" | "Δ" | "Ε" | "Ζ" | "Η" | "Θ" | "Ι" | "Κ"
-                    | "Λ" | "Μ" | "Ν" | "Ξ" | "Ο" | "Π" | "Ρ" | "Σ" | "Τ" | "Υ"
-                    | "Φ" | "Χ" | "Ψ" | "Ω"
-                    ;
-
-greek_lower         = "α" | "β" | "γ" | "δ" | "ε" | "ζ" | "η" | "θ" | "ι" | "κ"
-                    | "λ" | "μ" | "ν" | "ξ" | "ο" | "π" | "ρ" | "σ" | "τ" | "υ"
-                    | "φ" | "χ" | "ψ" | "ω"
+digit               = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
                     ;

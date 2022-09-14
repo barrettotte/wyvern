@@ -49,7 +49,7 @@ impl Lexer {
     }
 
     fn is_ignore_char(&self, c: char) -> bool {
-        c == '(' || c == ')' || c == ' ' || c == '\t' || c == '\r'
+        c == '(' || c == ')' || c.is_whitespace()
     }
 
     fn peek(&self) -> char {
@@ -100,7 +100,6 @@ impl Lexer {
 
         match self.peek() {
             'λ' | '\\' => t = Some(self.lex_lambda()),
-            '\n' => self.advance_line(),
             '#' => self.lex_comment(),
             ':' => t = Some(self.lex_assignment()),
             '.' => t = Some(self.lex_dot()),

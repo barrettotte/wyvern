@@ -99,11 +99,11 @@ impl Lexer {
         let mut t: Option<Token> = None;
 
         match self.peek() {
-            '#'  => self.lex_comment(),
+            'λ' | '\\' => t = Some(self.lex_lambda()),
             '\n' => self.advance_line(),
-            ':'  => t = Some(self.lex_assignment()),
-            'λ'  => t = Some(self.lex_lambda()),
-            '.'  => t = Some(self.lex_dot()),
+            '#' => self.lex_comment(),
+            ':' => t = Some(self.lex_assignment()),
+            '.' => t = Some(self.lex_dot()),
             c => {
                 if self.is_identifier_char(c) {
                     t = Some(self.lex_identifier());

@@ -18,7 +18,10 @@ expression          = ["("], (identifier | application | abstraction), [")"]
 application         = expression, expression
                     ;
 
-abstraction         = "λ", identifier, ".", expression
+abstraction         = lambda, identifier, ".", expression
+                    ;
+
+lambda              = "λ" | "\"
                     ;
 
 identifier          = { character }

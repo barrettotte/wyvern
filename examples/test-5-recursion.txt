@@ -1,0 +1,5 @@
+# Recursive function tests
+F    := λn.(if (0? n) 1 (times n (f (dec n))))
+Y    := λf.(λx.f (x x))(λx.f (x x))
+
+fact := Y F

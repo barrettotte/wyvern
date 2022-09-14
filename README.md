@@ -6,11 +6,11 @@ of lambda calculus and functional programming.
 ## Background
 
 Lambda(λ) calculus is a formal system developed by [Alonzo Church](https://en.wikipedia.org/wiki/Alonzo_Church) 
-to express mathematical functions. It is the foundation of functional programming languages. 
+to express mathematical functions and is the foundation of functional programming languages. 
 Lambda calculus (function-based) and Turing machines (state-based) are both universal models of computation, 
 part of the [Church-Turing Thesis](https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis).
 
-See [grammar.ebnf](grammar.ebnf) for [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) grammar of untyped lambda calculus.
+See [grammar.ebnf](grammar.ebnf) for [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) grammar of this untyped lambda calculus.
 
 ## Examples
 

@@ -1,0 +1,4 @@
+# general tests
+λf.λx.x      # inline comment
+λf.(λx.x)
+λfx.x

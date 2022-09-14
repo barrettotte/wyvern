@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufReader, BufRead};
 
 mod lexer;
-mod parser;
+// mod parser;
 mod token;
 
 fn main() {
@@ -21,14 +21,20 @@ fn run_file(path: &str) {
     if let Ok(f) = File::open(path) {
         let buff = BufReader::new(f);
         let mut lexer = lexer::Lexer::new();
-        let mut parser = parser::Parser::new();
+        // let mut parser = parser::Parser::new();
 
         for line in buff.lines() {
             if let Ok(src) = line {
+                println!("{}", src);
                 let tokens = lexer.lex_line(&src);
+                for t in tokens.iter() {
+                    println!("  {}", t);
+                }
+                
                 // TODO: print out and test values
-                let ast = parser.parse(&tokens);
+                // let ast = parser.parse(&tokens);
                 // add symbols to symbol table?
+                println!();
             }
         }
     } else {

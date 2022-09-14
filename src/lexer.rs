@@ -2,7 +2,6 @@ use crate::token::{Token, TokenType};
 
 pub struct Lexer {
     src: Vec<char>,
-    idx: usize,
     col: usize,
     line: usize,
 }
@@ -11,7 +10,6 @@ impl Lexer {
     pub fn new() -> Lexer {
         Lexer {
             src: Vec::new(),
-            idx: 0,
             col: 0,
             line: 1,
         }
@@ -20,9 +18,10 @@ impl Lexer {
     // scan a single line of source to tokens
     pub fn lex_line(&mut self, src: &str) -> Vec<Token> {
         let mut tokens: Vec<Token> = Vec::new();
+        self.col = 0;
         self.src = src.chars().collect();
 
-        while self.peek() != '\n' {
+        while !self.is_eol() {
             if let Some(t) = self.lex_token() {
                 tokens.push(t);
             }
@@ -32,7 +31,6 @@ impl Lexer {
     }
 
     fn advance(&mut self) {
-        self.idx += 1;
         self.col += 1;
     }
 
@@ -42,88 +40,80 @@ impl Lexer {
         self.col = 0;
     }
 
-    fn peek(&self) -> char {
-        self.src[self.idx]
+    fn is_eol(&self) -> bool {
+        self.col >= self.src.len()
     }
 
-    fn is_eof(&self) -> bool {
-        self.idx >= self.src.len()
+    fn is_identifier_char(&self, c: char) -> bool {
+        c.is_alphanumeric() || c == '_'
+    }
+
+    fn is_ignore_char(&self, c: char) -> bool {
+        c == '(' || c == ')' || c == ' ' || c == '\t' || c == '\r'
+    }
+
+    fn peek(&self) -> char {
+        self.src[self.col]
     }
 
     fn new_token(&self, tok_type: TokenType, start: usize) -> Token {
-        Token::new(tok_type, self.line, self.col, self.src[start..self.idx].to_vec())
+        Token::new(tok_type, self.line, start, self.src[start..self.col].to_vec())
     }
 
     fn lex_comment(&mut self) {
-        self.advance(); // start comment
-        let c = self.peek();
-
-        // consume characters until next line reached
-        while c != '\n' && !self.is_eof() {
+        while !self.is_eol() {
             self.advance();
         }
     }
 
-    fn lex_variable(&mut self) -> Token {
-        let mut var: Vec<char> = Vec::new();
+    fn lex_identifier(&mut self) -> Token {
         let start = self.col;
-
-        while self.peek().is_alphanumeric() && !self.is_eof() {
-            var.push(self.peek());
+        while !self.is_eol() && self.is_identifier_char(self.peek()) {
             self.advance();
         }
-        self.new_token(TokenType::Variable, start)
+        return self.new_token(TokenType::Variable, start);
     }
 
     fn lex_assignment(&mut self) -> Token {
         self.advance(); // consume ':'
 
         if self.peek() == '=' {
-            self.new_token(TokenType::Assign, self.idx - 1)
+            self.advance();
+            return self.new_token(TokenType::Assign, self.col - 2);
         } else {
             panic!("Bad character, expected '='. Line {}, column {}", self.line, self.col);
         }
     }
 
+    fn lex_lambda(&mut self) -> Token {
+        self.advance();
+        return self.new_token(TokenType::Lambda, self.col - 1);
+    }
+
+    fn lex_dot(&mut self) -> Token {
+        self.advance();
+        return self.new_token(TokenType::Dot, self.col - 1);
+    }
+
     fn lex_token(&mut self) -> Option<Token> {
+        let mut t: Option<Token> = None;
+
         match self.peek() {
-            '\n' => {
-                self.advance_line();
-                None
-            },
-            '#' => {
-                self.lex_comment();
-                None
-            },
-            ':' => {
-                Some(self.lex_assignment())
-            },
-            ' ' => {
-                self.advance();
-                None
-            },
-            ')' => {
-                self.advance();
-                None
-            },
-            '(' => {
-                self.advance();
-                None
-            },
-            'λ' => {
-                self.advance();
-                Some(self.new_token(TokenType::Lambda, self.idx))
-            },
-            '.' => {
-                self.advance();
-                Some(self.new_token(TokenType::Dot, self.idx))
-            },
+            '#'  => self.lex_comment(),
+            '\n' => self.advance_line(),
+            ':'  => t = Some(self.lex_assignment()),
+            'λ'  => t = Some(self.lex_lambda()),
+            '.'  => t = Some(self.lex_dot()),
             c => {
-                if !c.is_alphanumeric() {
-                    panic!("Invalid character found. Line {}, column {}", self.line, self.col);
+                if self.is_identifier_char(c) {
+                    t = Some(self.lex_identifier());
+                } else if self.is_ignore_char(c) {
+                    self.advance();
+                } else {
+                    panic!("Bad character. Line {}, column {}", self.line, self.col);
                 }
-                Some(self.lex_variable())
             }
         }
+        return t;
     }
 }

@@ -9,19 +9,19 @@ statement           = (comment | definition | expression), "\n"
 comment             = "#", { character }
                     ;
 
-definition          = variable, ":=", expression
+definition          = identifier, ":=", expression
                     ;
 
-expression          = ["("], (variable | application | abstraction), [")"]
+expression          = ["("], (identifier | application | abstraction), [")"]
                     ;
 
 application         = expression, expression
                     ;
 
-abstraction         = "λ", variable, ".", expression
+abstraction         = "λ", identifier, ".", expression
                     ;
 
-variable            = { character }
+identifier          = { character }
                     ;
 
 character           = letter | digit | "_"

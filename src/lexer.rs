@@ -49,7 +49,7 @@ impl Lexer {
     }
 
     fn is_ignore_char(&self, c: char) -> bool {
-        c == '(' || c == ')' || c == ' ' || c == '\t' || c == '\r'
+        c == '(' || c == ')' || (c != '\n' && c.is_whitespace())
     }
 
     fn peek(&self) -> char {

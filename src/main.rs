@@ -3,8 +3,7 @@ use std::fs::File;
 use std::io::{BufReader, BufRead};
 
 mod lexer;
-// mod parser;
-mod token;
+mod parser;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

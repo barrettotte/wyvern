@@ -15,8 +15,6 @@ fn main() {
 }
 
 fn run_file(path: &str) {
-    println!("Running {}", path);
-
     if let Ok(f) = File::open(path) {
         let buff = BufReader::new(f);
         let mut lexer = lexer::Lexer::new();

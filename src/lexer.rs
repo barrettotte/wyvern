@@ -34,8 +34,12 @@ impl Token {
         }
     }
 
-    pub fn get_type(&self) -> &TokenType {
-        &self.tok_type
+    pub fn get_type(&self) -> TokenType {
+        self.tok_type
+    }
+
+    pub fn get_lexeme(&self) -> &Vec<char> {
+        &self.lexeme
     }
 
     pub fn is_type(&self, t: TokenType) -> bool {
@@ -45,9 +49,9 @@ impl Token {
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s: String = self.lexeme.iter().collect();
+        let s = self.lexeme.iter().collect::<String>();
         write!(f, "Token{{tok_type=\"{}\", line={}, col={}:{}, lexeme=\"{}\"}}", 
-            self.tok_type, self.line, self.col + 1, self.col + s.as_str().len(), s.as_str())
+            self.tok_type, self.line, self.col + 1, self.col + s.len(), s)
     }
 }
 
@@ -68,6 +72,14 @@ impl Lexer {
         }
     }
 
+    // reset internal state of lexer
+    #[allow(dead_code)]
+    pub fn reset(&mut self) {
+        self.src = Vec::new();
+        self.col = 0;
+        self.line = 1;
+    }
+
     // scan a single line of source to tokens
     pub fn lex_line(&mut self, src: &str) -> Result<Vec<Token>, String> {
         let mut tokens: Vec<Token> = Vec::new();
@@ -75,13 +87,8 @@ impl Lexer {
         self.src = src.chars().collect();
 
         while !self.is_eol() {
-            match self.lex_token() {
-                Ok(x) => {
-                    if let Some(t) = x {
-                        tokens.push(t);
-                    }
-                }
-                Err(e) => return Err(e)
+            if let Some(t) = self.lex_token()? {
+                tokens.push(t);
             }
         }
         tokens.push(self.new_token(TokenType::EOF, self.col).unwrap().unwrap());
@@ -137,31 +144,20 @@ impl Lexer {
 
     fn lex_identifier(&mut self) -> LexResult {
         let start = self.col;
-        while !self.is_eol() {
-            match self.peek() {
-                Ok(c) => {
-                    if !self.is_identifier_char(c) {
-                        break;
-                    }
-                    self.advance();
-                },
-                Err(e) => return Err(e)
-            }
+        while !self.is_eol() && self.is_identifier_char(self.peek()?){
+            self.advance();
         }
         return self.new_token(TokenType::Identifier, start);
     }
 
     fn lex_assignment(&mut self) -> LexResult {
         self.advance(); // consume ':'
-        match self.peek() {
-            Ok(c) => match c {
-                '=' => {
-                    self.advance();
-                    self.new_token(TokenType::Assign, self.col - 2)
-                },
-                c => Err(format!("Bad character, expected '='. But received '{}'. Line {}, column {}", c, self.line, self.col))
+        match self.peek()? {
+            '=' => {
+                self.advance();
+                self.new_token(TokenType::Assign, self.col - 2)
             },
-            Err(e) => Err(e)
+            c => Err(format!("Bad character, expected '='. But received '{}'. Line {}, column {}", c, self.line, self.col))
         }
     }
 
@@ -176,20 +172,17 @@ impl Lexer {
     }
 
     fn lex_token(&mut self) -> LexResult {
-        match self.peek() {
-            Ok(c) => match c {
-                'λ' | '\\' => self.lex_lambda(),
-                '#' => self.lex_comment(),
-                ':' => self.lex_assignment(),
-                '.' => self.lex_dot(),
-                c if self.is_identifier_char(c) => self.lex_identifier(),
-                c if self.is_ignore_char(c) => {
-                    self.advance();
-                    Ok(None)
-                },
-                _ => Err(format!("Bad character. Line {}, column {}", self.line, self.col))
+        match self.peek()? {
+            'λ' | '\\' => self.lex_lambda(),
+            '#' => self.lex_comment(),
+            ':' => self.lex_assignment(),
+            '.' => self.lex_dot(),
+            c if self.is_identifier_char(c) => self.lex_identifier(),
+            c if self.is_ignore_char(c) => {
+                self.advance();
+                Ok(None)
             },
-            Err(e) => Err(e)
+            _ => Err(format!("Bad character. Line {}, column {}", self.line, self.col))
         }
     }
 }

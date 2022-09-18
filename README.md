@@ -11,6 +11,7 @@ Lambda calculus (function-based) and Turing machines (state-based) are both univ
 part of the [Church-Turing Thesis](https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis).
 
 See [grammar.ebnf](grammar.ebnf) for [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) grammar of this untyped lambda calculus.
+Expressions that are not part of a definition will be written to stdout.
 
 ## Examples
 

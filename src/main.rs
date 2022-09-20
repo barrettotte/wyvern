@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufReader, BufRead};
 
 mod lexer;
-// mod parser;
+mod parser;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -18,7 +18,7 @@ fn run_file(path: &str) {
     if let Ok(f) = File::open(path) {
         let buff = BufReader::new(f);
         let mut lexer = lexer::Lexer::new();
-        // let mut parser = parser::Parser::new();
+        let mut parser = parser::Parser::new();
 
         for line in buff.lines() {
             match line {
@@ -29,8 +29,10 @@ fn run_file(path: &str) {
                             for t in tokens.iter() {
                                 println!("  {}", t);
                             }
-                            // let ast = parser.parse(tokens);
-                            // add symbols to symbol table?
+                            match parser.parse(tokens) {
+                                Ok(ast) => println!("{}", ast),
+                                Err(e) => panic!("Parser error: {:?}", e)
+                            }
                             println!();
                         },
                         Err(e) => panic!("Lexer error: {:?}", e)

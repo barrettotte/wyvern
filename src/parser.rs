@@ -47,8 +47,8 @@ impl Parser {
         self.idx = 0;
 
         let root = self.parse_statement();
-        self.consume(TokenType::EOF);
-        root?
+        self.consume(TokenType::EOF)?;
+        Ok(root?)
     }
 
     // view next token to be consumed
@@ -60,39 +60,74 @@ impl Parser {
     }
 
     // consume token of certain type or panic
-    fn consume(&mut self, tok_type: TokenType) -> Result<&Token, String> {
-        let t = self.peek()?;    
+    fn consume(&mut self, tok_type: TokenType) -> Result<Token, String> {
+        let t = self.peek()?.clone();
         if !t.is_type(tok_type) {
             return Err(format!("Unexpected token. Expected {:?}, but found {:?}", t.get_type(), tok_type));
         }
-        self.idx += 1;
+        self.advance();
         Ok(t)
     }
 
-    fn consume_identifier(&mut self) -> Result<String, String> {
-        Ok(self.consume(TokenType::Identifier)?.get_lexeme().iter().collect::<String>())
+    // advance to next token
+    fn advance(&mut self) {
+        self.idx += 1
+    }
+
+    // rewind to previous token
+    fn rewind(&mut self) {
+        self.idx -= 1
+    }
+
+    fn parse_identifier(&mut self) -> ParseResult {
+        Ok(AstNode::Identifier(self.consume(TokenType::Identifier)?.get_lexeme().iter().collect::<String>()))
     }
 
     fn parse_application(&mut self) -> ParseResult {
-        Ok(AstNode::EOF) // TODO:
-    }
-
-    fn parse_abstraction(&mut self) -> ParseResult {
-        Ok(AstNode::EOF) // TODO:
-    }
-
-    fn parse_expression(&mut self) -> ParseResult {
-        // (identifier | application | abstraction)
-        let t = self.peek()?;
-        match t.get_type() {
-            TokenType::Identifier => Ok(AstNode::Identifier(identifier))
+        let mut left = match self.peek()?.get_type() {
+            TokenType::Identifier => Some(self.parse_identifier()?),
+            TokenType::Lambda => Some(self.parse_abstraction()?),
+            _ => None
+        };
+        loop {
+            let right = match self.peek()?.get_type() {
+                TokenType::Identifier => Some(self.parse_identifier()?),
+                TokenType::Lambda => Some(self.parse_abstraction()?),
+                _ => None
+            };
+            match right {
+                Some(expr) => {
+                    left = Some(AstNode::Application {
+                        left: Box::new(left.unwrap()), 
+                        right: Box::new(expr)
+                    })
+                },
+                None => return Ok(left.unwrap())
+            }
         }
     }
 
-    fn parse_definition(&mut self, identifier: String) -> ParseResult {
+    fn parse_abstraction(&mut self) -> ParseResult {
+        self.consume(TokenType::Lambda)?;
+        let param = self.parse_identifier()?;
+        self.consume(TokenType::Dot)?;
+        Ok(AstNode::Abstraction {
+            parameter: Box::new(param), 
+            expression: Box::new(self.parse_expression()?)
+        })
+    }
+
+    fn parse_expression(&mut self) -> ParseResult {
+        if self.peek()?.get_type() == TokenType::EOF {
+            return Ok(AstNode::EOF)
+        }
+        self.parse_application()
+    }
+
+    fn parse_definition(&mut self, identifier: AstNode) -> ParseResult {
         self.consume(TokenType::Assign)?; // consume ':='
         Ok(AstNode::Definition {
-            identifier: Box::new(AstNode::Identifier(identifier)), 
+            identifier: Box::new(identifier), 
             expression: Box::new(self.parse_expression()?)
         })
     }
@@ -100,13 +135,15 @@ impl Parser {
     fn parse_statement(&mut self) -> ParseResult {
         match self.peek()?.get_type() {
             TokenType::Identifier => {
-                let identifier = self.consume_identifier?;
+                let identifier = self.parse_identifier()?;
                 match self.peek()?.get_type() {
                     TokenType::Assign => self.parse_definition(identifier),
-                    _ => Ok(AstNode::Identifier(identifier))
+                    _ => {
+                        self.rewind();
+                        self.parse_expression()
+                    }
                 }
             },
-            TokenType::EOF => Ok(AstNode::EOF),
             _ => self.parse_expression()
         }
     }

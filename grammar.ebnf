@@ -3,22 +3,33 @@
 program             = { statement }
                     ;
 
-statement           = (comment | definition | expression), "\n"
+statement           = (comment | definition | term), "\n"
+                    ;
+
+definition          = identifier, ":=", term
                     ;
 
 comment             = "#", { character }
                     ;
 
-definition          = identifier, ":=", expression
+term                = application | abstraction
                     ;
 
-expression          = ["("], (identifier | application | abstraction), [")"]
+application         = atom, application_recurse
                     ;
 
-application         = expression, expression
+application_recurse = atom, application_recurse
+                    | epsilon
                     ;
 
-abstraction         = lambda, identifier, ".", expression
+abstraction         = lambda, identifier, ".", term
+                    ;
+
+atom                = "(", term, ")"
+                    | identifier
+                    ;
+
+epsilon             = "ε"
                     ;
 
 lambda              = "λ" | "\"

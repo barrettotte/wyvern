@@ -6,6 +6,8 @@ pub enum TokenType {
     Lambda,
     Dot,
     Identifier,
+    OpenParen,
+    CloseParen,
     Assign,
     EOF,
 }
@@ -161,22 +163,19 @@ impl Lexer {
         }
     }
 
-    fn lex_lambda(&mut self) -> LexResult {
+    fn lex_single(&mut self, tok_type: TokenType) -> LexResult {
         self.advance();
-        self.new_token(TokenType::Lambda, self.col - 1)
-    }
-
-    fn lex_dot(&mut self) -> LexResult {
-        self.advance();
-        self.new_token(TokenType::Dot, self.col - 1)
+        self.new_token(tok_type, self.col - 1)
     }
 
     fn lex_token(&mut self) -> LexResult {
         match self.peek()? {
-            'λ' | '\\' => self.lex_lambda(),
+            'λ' | '\\' => self.lex_single(TokenType::Lambda),
+            '.' => self.lex_single(TokenType::Dot),
+            '(' => self.lex_single(TokenType::OpenParen),
+            ')' => self.lex_single(TokenType::CloseParen),
             '#' => self.lex_comment(),
             ':' => self.lex_assignment(),
-            '.' => self.lex_dot(),
             c if self.is_identifier_char(c) => self.lex_identifier(),
             c if self.is_ignore_char(c) => {
                 self.advance();

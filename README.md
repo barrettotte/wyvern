@@ -1,4 +1,4 @@
-# lambda-calculus-rs
+# wyvern
 
 An untyped lambda calculus interpreter made to learn the foundations 
 of lambda calculus and functional programming.
@@ -36,5 +36,8 @@ Expressions that are not part of a definition will be written to stdout.
 - [An Introduction to Functional Programming Through Lambda Calculus. Michaelson (9780486478838)](https://isbnsearch.org/isbn/9780486478838)
 - [Computerphile - Lambda Calculus](https://www.youtube.com/watch?v=eis11j_iGMs&ab_channel=Computerphile)
 - [Computerphile - Y Combinator](https://www.youtube.com/watch?v=9T8A89jgeTI&ab_channel=Computerphile)
-- [Church Encoding](https://en.wikipedia.org/wiki/Church_encoding)
 - [Untyped Lambda Calculus slides](https://www3.cs.stonybrook.edu/~cram/cse526/Spring20/Lectures/untyped-lambda.pdf)
+- https://en.wikipedia.org/wiki/Church_encoding
+- https://hbr.github.io/Lambda-Calculus/lambda2/lambda.html
+- https://tadeuzagallo.com/blog/writing-a-lambda-calculus-interpreter-in-javascript/
+- https://blog.shaynefletcher.org/2016/10/eliminating-left-recursion.html

@@ -4,16 +4,16 @@ use crate::lexer::{Token, TokenType};
 #[derive(Debug, PartialEq)]
 pub enum AstNode {
     Application {
-        left: Box<AstNode>,
-        right: Box<AstNode>
+        lhs: Box<AstNode>,
+        rhs: Box<AstNode>
     },
     Abstraction {
         parameter: Box<AstNode>,
-        expression: Box<AstNode>
+        term: Box<AstNode>
     },
     Definition {
         identifier: Box<AstNode>,
-        expression: Box<AstNode>
+        term: Box<AstNode>
     },
     Identifier(String),
     EOF,
@@ -84,51 +84,66 @@ impl Parser {
     }
 
     fn parse_application(&mut self) -> ParseResult {
-        let mut left = match self.peek()?.get_type() {
-            TokenType::Identifier => Some(self.parse_identifier()?),
-            TokenType::Lambda => Some(self.parse_abstraction()?),
-            _ => None
-        };
+        let mut lhs = self.parse_atom();
         loop {
-            let right = match self.peek()?.get_type() {
-                TokenType::Identifier => Some(self.parse_identifier()?),
-                TokenType::Lambda => Some(self.parse_abstraction()?),
-                _ => None
-            };
-            match right {
-                Some(expr) => {
-                    left = Some(AstNode::Application {
-                        left: Box::new(left.unwrap()), 
-                        right: Box::new(expr)
-                    })
-                },
-                None => return Ok(left.unwrap())
+            let rhs = self.parse_atom();
+
+            if rhs.is_none() {
+                return lhs.unwrap();
+            } else {
+                lhs = Some(Ok(AstNode::Application {
+                    lhs: Box::new(lhs.unwrap().unwrap()),
+                    rhs: Box::new(rhs.unwrap().unwrap())
+                }))
             }
         }
     }
 
     fn parse_abstraction(&mut self) -> ParseResult {
         self.consume(TokenType::Lambda)?;
-        let param = self.parse_identifier()?;
+        let identifier = self.parse_identifier()?;
         self.consume(TokenType::Dot)?;
-        Ok(AstNode::Abstraction {
-            parameter: Box::new(param), 
-            expression: Box::new(self.parse_expression()?)
+        let term = self.parse_term()?;
+
+        return Ok(AstNode::Abstraction { 
+            parameter: Box::new(identifier),
+            term: Box::new(term)
         })
     }
 
-    fn parse_expression(&mut self) -> ParseResult {
-        if self.peek()?.get_type() == TokenType::EOF {
-            return Ok(AstNode::EOF)
+    fn parse_atom(&mut self) -> Option<ParseResult> {
+        match self.peek() {
+            Ok(token) => {
+                match token.get_type() {
+                    TokenType::OpenParen => Some(self.parse_parenthetical_term()),
+                    TokenType::Identifier => Some(self.parse_identifier()),
+                    _ => None
+                }
+            },
+            Err(e) => Some(Err(format!("Error parsing atom. {}", e))),
         }
-        self.parse_application()
+    }
+
+    fn parse_parenthetical_term(&mut self) -> ParseResult {
+        self.consume(TokenType::OpenParen)?;
+        let term = self.parse_term();
+        self.consume(TokenType::CloseParen)?;
+        return term
+    }
+
+    fn parse_term(&mut self) -> ParseResult {
+        match self.peek()?.get_type() {
+            TokenType::EOF => Ok(AstNode::EOF),
+            TokenType::Lambda => self.parse_abstraction(),
+            _ => self.parse_application()
+        }
     }
 
     fn parse_definition(&mut self, identifier: AstNode) -> ParseResult {
-        self.consume(TokenType::Assign)?; // consume ':='
+        self.consume(TokenType::Assign)?;
         Ok(AstNode::Definition {
             identifier: Box::new(identifier), 
-            expression: Box::new(self.parse_expression()?)
+            term: Box::new(self.parse_term()?)
         })
     }
 
@@ -140,11 +155,11 @@ impl Parser {
                     TokenType::Assign => self.parse_definition(identifier),
                     _ => {
                         self.rewind();
-                        self.parse_expression()
+                        self.parse_term()
                     }
                 }
             },
-            _ => self.parse_expression()
+            _ => self.parse_term()
         }
     }
 }

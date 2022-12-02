@@ -10,8 +10,16 @@ to express mathematical functions and is the foundation of functional programmin
 Lambda calculus (function-based) and Turing machines (state-based) are both universal models of computation, 
 part of the [Church-Turing Thesis](https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis).
 
-See [grammar.ebnf](grammar.ebnf) for [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) grammar of this untyped lambda calculus.
-Expressions that are not part of a definition will be written to stdout.
+Grammar at a glance:
+
+- Identifier: `x` - Identifier as expected in a programming language
+- Grouping: `(x)` - Grouping terms to avoid ambiguity
+- Abstraction: `λx.y` - Define function or lambda (anonymous function)
+- Application: `x y` - Invoke a lambda
+- Definition: `T := λx.y` - Define an alias
+
+See [grammar.ebnf](grammar.ebnf) for [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) 
+grammar of this untyped lambda calculus.
 
 ## Examples
 
@@ -41,3 +49,5 @@ Expressions that are not part of a definition will be written to stdout.
 - https://hbr.github.io/Lambda-Calculus/lambda2/lambda.html
 - https://tadeuzagallo.com/blog/writing-a-lambda-calculus-interpreter-in-javascript/
 - https://blog.shaynefletcher.org/2016/10/eliminating-left-recursion.html
+- https://lucasfcosta.com/2018/07/29/An-Introduction-to-Lambda-Calculus-Part-1.html
+- https://www.youtube.com/watch?v=3VQ382QG-y4

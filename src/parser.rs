@@ -115,7 +115,7 @@ impl Parser {
         match self.peek() {
             Ok(token) => {
                 match token.get_type() {
-                    TokenType::OpenParen => Some(self.parse_parenthetical_term()),
+                    TokenType::OpenParen => Some(self.parse_grouped_term()),
                     TokenType::Identifier => Some(self.parse_identifier()),
                     _ => None
                 }
@@ -124,7 +124,7 @@ impl Parser {
         }
     }
 
-    fn parse_parenthetical_term(&mut self) -> ParseResult {
+    fn parse_grouped_term(&mut self) -> ParseResult {
         self.consume(TokenType::OpenParen)?;
         let term = self.parse_term();
         self.consume(TokenType::CloseParen)?;

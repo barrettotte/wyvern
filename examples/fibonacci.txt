@@ -1,3 +1,0 @@
-# Recursive Fibonacci in Untyped Lambda Calculus
-
-# TODO:

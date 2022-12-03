@@ -1,7 +1,7 @@
 # wyvern
 
-An untyped lambda calculus interpreter made to learn the foundations 
-of lambda calculus and functional programming.
+An untyped lambda calculus interpreter made to learn the basics 
+of lambda calculus and concepts of functional programming.
 
 ## Background
 
@@ -16,23 +16,9 @@ Grammar at a glance:
 - Grouping: `(x)` - Grouping terms to avoid ambiguity
 - Abstraction: `λx.y` - Define function or lambda (anonymous function)
 - Application: `x y` - Invoke a lambda
-- Definition: `T := λx.y` - Define an alias
 
 See [grammar.ebnf](grammar.ebnf) for [EBNF](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) 
 grammar of this untyped lambda calculus.
-
-## Examples
-
-```rs
-// TODO:
-
-// church booleans
-// church numerals
-// data structures
-// y combinator?
-
-// fibonacci sequence
-```
 
 ## Commands
 
@@ -46,6 +32,7 @@ grammar of this untyped lambda calculus.
 - [Computerphile - Y Combinator](https://www.youtube.com/watch?v=9T8A89jgeTI&ab_channel=Computerphile)
 - [Untyped Lambda Calculus slides](https://www3.cs.stonybrook.edu/~cram/cse526/Spring20/Lectures/untyped-lambda.pdf)
 - https://en.wikipedia.org/wiki/Church_encoding
+- https://en.wikipedia.org/wiki/Beta_normal_form
 - https://hbr.github.io/Lambda-Calculus/lambda2/lambda.html
 - https://tadeuzagallo.com/blog/writing-a-lambda-calculus-interpreter-in-javascript/
 - https://blog.shaynefletcher.org/2016/10/eliminating-left-recursion.html

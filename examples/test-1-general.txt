@@ -1,7 +1,0 @@
-# general tests
-
-λf.λx.x      # abstraction
-λf.(λx.x)    # abstraction
-x y          # application
-x            # identifier
-T := \fx.x   # definition

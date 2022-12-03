@@ -1,0 +1,27 @@
+# https://en.wikipedia.org/wiki/Lambda_calculus#Encoding_datatypes
+
+# general
+λf.λx.x   # abstraction
+λf.(λx.x) # abstraction
+x y       # application
+x         # identifier
+
+# booleans
+(λx.λy.x) t f # true
+(λx.λy.y) t f # false
+
+# not
+(λp.p (λx.λy.y) (λx.λy.x)) (λx.λy.y) # NOT false
+(λp.p (λx.λy.y) (λx.λy.x)) (λx.λy.x) # NOT true
+
+# or
+(λp.λq.p p q) (λx.λy.x) (λx.λy.x) # true OR true
+(λp.λq.p p q) (λx.λy.x) (λx.λy.y) # true OR false
+(λp.λq.p p q) (λx.λy.y) (λx.λy.x) # false OR true
+(λp.λq.p p q) (λx.λy.y) (λx.λy.y) # false OR false
+
+# and
+(λp.λq.p q p) (λx.λy.x) (λx.λy.x) # true AND true
+(λp.λq.p q p) (λx.λy.x) (λx.λy.y) # true AND false
+(λp.λq.p q p) (λx.λy.y) (λx.λy.x) # false AND true
+(λp.λq.p q p) (λx.λy.y) (λx.λy.y) # false AND false

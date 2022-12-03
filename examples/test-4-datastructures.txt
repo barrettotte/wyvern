@@ -1,5 +1,0 @@
-# Data structures tests
-pair := λf.λs.λc.((c f) s)
-
-1st  := λp.(p true)
-2nd  := λp.(p false)

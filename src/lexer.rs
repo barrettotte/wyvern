@@ -1,5 +1,4 @@
-use std::fmt;
-use std::str;
+use std::{fmt,str};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenType {
@@ -8,7 +7,6 @@ pub enum TokenType {
     Identifier,
     OpenParen,
     CloseParen,
-    Assign,
     EOF,
 }
 
@@ -152,17 +150,6 @@ impl Lexer {
         return self.new_token(TokenType::Identifier, start);
     }
 
-    fn lex_assignment(&mut self) -> LexResult {
-        self.advance(); // consume ':'
-        match self.peek()? {
-            '=' => {
-                self.advance();
-                self.new_token(TokenType::Assign, self.col - 2)
-            },
-            c => Err(format!("Bad character, expected '='. But received '{}'. Line {}, column {}", c, self.line, self.col))
-        }
-    }
-
     fn lex_single(&mut self, tok_type: TokenType) -> LexResult {
         self.advance();
         self.new_token(tok_type, self.col - 1)
@@ -175,7 +162,6 @@ impl Lexer {
             '(' => self.lex_single(TokenType::OpenParen),
             ')' => self.lex_single(TokenType::CloseParen),
             '#' => self.lex_comment(),
-            ':' => self.lex_assignment(),
             c if self.is_identifier_char(c) => self.lex_identifier(),
             c if self.is_ignore_char(c) => {
                 self.advance();

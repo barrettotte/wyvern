@@ -1,27 +1,83 @@
-use std::{fmt};
+use std::{fmt, collections::HashMap};
 use crate::lexer::{Token, TokenType};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AstNode {
-    Application {
-        lhs: Box<AstNode>,
-        rhs: Box<AstNode>
-    },
     Abstraction {
         parameter: Box<AstNode>,
         term: Box<AstNode>
     },
-    Definition {
-        identifier: Box<AstNode>,
-        term: Box<AstNode>
+    Application {
+        lhs: Box<AstNode>,
+        rhs: Box<AstNode>
     },
     Identifier(String),
-    EOF,
+    Epsilon,
+}
+
+impl AstNode {
+    pub fn reduce(&self, env: HashMap<String, AstNode>) -> AstNode {
+        match self {
+            AstNode::Abstraction {parameter, term} => {
+                let mut new_env = env.clone();
+                
+                if let AstNode::Identifier(ref id) = **parameter {
+                    if new_env.contains_key(id) {
+                        new_env.remove(id);
+                    }
+                    if let AstNode::Application {ref lhs, ref rhs} = **term {
+                        if rhs == parameter && !lhs.free(&**parameter) {
+                            return lhs.reduce(new_env);
+                        }
+                    }
+                } else {
+                    panic!("Invalid abstraction")
+                }
+                AstNode::Abstraction {parameter: parameter.clone(), term: Box::new(term.reduce(new_env))}
+            },
+            AstNode::Application {ref lhs, ref rhs} => {
+                if let AstNode::Abstraction {ref parameter, ref term} = **lhs {
+                    let mut new_env = env.clone();
+
+                    if let AstNode::Identifier(ref id) = **parameter {
+                        new_env.insert(id.clone(), *rhs.clone());
+                        return term.reduce(new_env);
+                    }
+                    panic!("Invalid application")
+                }
+                AstNode::Application {
+                    lhs: Box::new(lhs.reduce(env.clone())),
+                    rhs: Box::new(rhs.reduce(env.clone()))
+                }
+            },
+            AstNode::Identifier(id) => {
+                match env.get(id) {
+                    Some(x) => x.clone(),
+                    None => self.clone(),
+                }
+            },
+            AstNode::Epsilon => self.clone(),
+        }
+    }
+
+    fn free(&self, id: &AstNode) -> bool {
+        match self {
+            AstNode::Abstraction {parameter, term} => *id != **parameter && term.free(id),
+            AstNode::Application {lhs, rhs} => lhs.free(id) || rhs.free(id),
+            AstNode::Identifier(_) => self == id,
+            _ => false
+        }
+    }
 }
 
 impl fmt::Display for AstNode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        match &self {
+            AstNode::Application {lhs, rhs} => write!(f, "({} {})", lhs, rhs),
+            AstNode::Abstraction {parameter, term} => write!(f, "λ{}.{}", parameter, term),
+            AstNode::Identifier(id) => write!(f, "{}", id),
+            AstNode::Epsilon => write!(f, "ε")
+        }
     }
 }
 
@@ -30,7 +86,6 @@ type ParseResult = Result<AstNode, String>;
 pub struct Parser {
     tokens: Vec<Token>,
     idx: usize
-    // symbol table?
 }
 
 impl Parser {
@@ -45,10 +100,7 @@ impl Parser {
     pub fn parse(&mut self, tokens: Vec<Token>) -> ParseResult {
         self.tokens = tokens;
         self.idx = 0;
-
-        let root = self.parse_statement();
-        self.consume(TokenType::EOF)?;
-        Ok(root?)
+        Ok(self.parse_statement()?)
     }
 
     // view next token to be consumed
@@ -72,11 +124,6 @@ impl Parser {
     // advance to next token
     fn advance(&mut self) {
         self.idx += 1
-    }
-
-    // rewind to previous token
-    fn rewind(&mut self) {
-        self.idx -= 1
     }
 
     fn parse_identifier(&mut self) -> ParseResult {
@@ -105,7 +152,7 @@ impl Parser {
         self.consume(TokenType::Dot)?;
         let term = self.parse_term()?;
 
-        return Ok(AstNode::Abstraction { 
+        Ok(AstNode::Abstraction { 
             parameter: Box::new(identifier),
             term: Box::new(term)
         })
@@ -115,8 +162,8 @@ impl Parser {
         match self.peek() {
             Ok(token) => {
                 match token.get_type() {
-                    TokenType::OpenParen => Some(self.parse_grouped_term()),
                     TokenType::Identifier => Some(self.parse_identifier()),
+                    TokenType::OpenParen => Some(self.parse_grouped_term()),
                     _ => None
                 }
             },
@@ -131,35 +178,20 @@ impl Parser {
         return term
     }
 
+    fn parse_epsilon(&mut self) -> ParseResult {
+        self.advance();
+        Ok(AstNode::Epsilon)
+    }
+
     fn parse_term(&mut self) -> ParseResult {
         match self.peek()?.get_type() {
-            TokenType::EOF => Ok(AstNode::EOF),
+            TokenType::EOF | TokenType::CloseParen => self.parse_epsilon(),
             TokenType::Lambda => self.parse_abstraction(),
             _ => self.parse_application()
         }
     }
 
-    fn parse_definition(&mut self, identifier: AstNode) -> ParseResult {
-        self.consume(TokenType::Assign)?;
-        Ok(AstNode::Definition {
-            identifier: Box::new(identifier), 
-            term: Box::new(self.parse_term()?)
-        })
-    }
-
     fn parse_statement(&mut self) -> ParseResult {
-        match self.peek()?.get_type() {
-            TokenType::Identifier => {
-                let identifier = self.parse_identifier()?;
-                match self.peek()?.get_type() {
-                    TokenType::Assign => self.parse_definition(identifier),
-                    _ => {
-                        self.rewind();
-                        self.parse_term()
-                    }
-                }
-            },
-            _ => self.parse_term()
-        }
+        self.parse_term()
     }
 }

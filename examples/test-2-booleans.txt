@@ -1,8 +1,0 @@
-# Church Boolean tests
-true := λx.λy.x
-false := λx.λy.y
-
-and := λx.λy.((x y) false)
-or := λx.λy.((x true) y)
-not := λx.((x false) true)
-if := λc.λt.λe.((c t) e)

@@ -3,10 +3,7 @@
 program             = { statement }
                     ;
 
-statement           = (comment | definition | term), "\n"
-                    ;
-
-definition          = identifier, ":=", term
+statement           = (comment | term), "\n"
                     ;
 
 comment             = "#", { character }
